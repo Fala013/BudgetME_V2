@@ -87,6 +87,8 @@ function App() {
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [categoryTx, setCategoryTx] = useState([]);
 
     useEffect(() => {
         const saved = localStorage.getItem('transactions');
@@ -326,7 +328,24 @@ function App() {
         } else if (filter === 'uscite') {
             txs = txs.filter(tx => tx.type === 'uscita');
         }
-        return txs.sort((a, b) => a.displayDate - b.displayDate);
+        return txs.sort((a, b) => {
+            // Ordina prima per data
+            const dateA = a.displayDate ? new Date(a.displayDate) : new Date(0);
+            const dateB = b.displayDate ? new Date(b.displayDate) : new Date(0);
+            if (dateA.getTime() !== dateB.getTime()) {
+                return dateA - dateB;
+            }
+            // Se la data è uguale, ordina per ora (se presente)
+            if (a.time && b.time) {
+                return a.time.localeCompare(b.time);
+            } else if (a.time) {
+                return 1;
+            } else if (b.time) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
     };
 
     const filteredTx = filteredTransactions();
@@ -451,6 +470,7 @@ function App() {
                 {accounts.map(acc => (
                     <div
                         key={acc.id}
+                        className="accountItem"
                         style={{
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -569,7 +589,7 @@ function App() {
                             tabIndex={0}
                             aria-label={`Transazione: ${tx.description}, ${tx.amount}€`}
                         >
-                            <div className="transactionInfo">
+                            <div className="transactionInfo" style={{ flex: 1 }}>
                                 <div className="transactionDescription">{tx.description}</div>
                                 <div className="transactionCategory">{tx.category}</div>
                                 <div className="transactionDate">
@@ -585,7 +605,7 @@ function App() {
                                     )}
                                 </div>
                             </div>
-                            <div className="transactionActions">
+                            <div className="transactionActions" style={{ flex: '0 0 auto', minWidth: 100, textAlign: 'right' }}>
                                 <span className={tx.type === 'entrata' ? 'income amount' : 'expense amount'}>
                                     {formatAmount(tx.amount, tx.type)} €
                                 </span>
@@ -604,7 +624,36 @@ function App() {
                             .reduce((sum, t) => sum + (t.type === 'entrata' ? parseFloat(t.amount || '0') : -parseFloat(t.amount || '0')), 0);
                         if (totale === 0) return null;
                         return (
-                            <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E5EA', padding: '12px 0' }}>
+                            <div
+                                key={cat}
+                                className="categoryItem"
+                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E5EA', padding: '12px 0', cursor: 'pointer' }}
+                                onClick={() => {
+                                    const txs = filteredTransactions()
+                                        .filter(t => t.category === cat)
+                                        .sort((a, b) => {
+                                            const dateA = a.displayDate ? new Date(a.displayDate) : new Date(0);
+                                            const dateB = b.displayDate ? new Date(b.displayDate) : new Date(0);
+                                            if (dateA.getTime() !== dateB.getTime()) {
+                                                return dateA - dateB;
+                                            }
+                                            if (a.time && b.time) {
+                                                return a.time.localeCompare(b.time);
+                                            } else if (a.time) {
+                                                return 1;
+                                            } else if (b.time) {
+                                                return -1;
+                                            } else {
+                                                return 0;
+                                            }
+                                        });
+                                    setCategoryTx(txs);
+                                    setSelectedCategory(cat);
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`Categoria: ${cat}`}
+                            >
                                 <span style={{ fontWeight: 500, fontSize: 15 }}>{cat}</span>
                                 <span className="amount" style={{ color: totale >= 0 ? '#34C759' : '#FF3B30' }}>
                                     {totale >= 0 ? '+' : '-'}{Math.abs(totale).toFixed(2).replace('.', ',')} €
@@ -998,7 +1047,24 @@ function App() {
                                             if (to && tx.displayDate > to) return false;
                                             return true;
                                         })
-                                        .sort((a, b) => a.displayDate - b.displayDate);
+                                        .sort((a, b) => {
+                                            // Ordina prima per data
+                                            const dateA = a.displayDate ? new Date(a.displayDate) : new Date(0);
+                                            const dateB = b.displayDate ? new Date(b.displayDate) : new Date(0);
+                                            if (dateA.getTime() !== dateB.getTime()) {
+                                                return dateA - dateB;
+                                            }
+                                            // Se la data è uguale, ordina per ora (se presente)
+                                            if (a.time && b.time) {
+                                                return a.time.localeCompare(b.time);
+                                            } else if (a.time) {
+                                                return 1;
+                                            } else if (b.time) {
+                                                return -1;
+                                            } else {
+                                                return 0;
+                                            }
+                                        });
                                     
                                     setSearchResults(results);
                                 }}
@@ -1047,6 +1113,43 @@ function App() {
                                 setSearchFrom('');
                                 setSearchTo('');
                             }}>Chiudi</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {selectedCategory && (
+                <div className="modalOverlay">
+                    <div className="modal">
+                        <div className="modalHeader">
+                            <h2 className="modalTitle">Transazioni: {selectedCategory}</h2>
+                            <button className="closeButton" onClick={() => setSelectedCategory(null)}>{ICONS.close}</button>
+                        </div>
+                        <div style={{ maxHeight: 320, overflowY: 'auto', marginBottom: 12 }}>
+                            {categoryTx.length === 0 ? (
+                                <div style={{ color: '#8E8E93', textAlign: 'center', margin: 12 }}>
+                                    Nessuna transazione trovata per questa categoria.
+                                </div>
+                            ) : (
+                                categoryTx.map(tx => (
+                                    <div
+                                        key={tx.id}
+                                        className="categoryTxItem"
+                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E5E5EA', padding: '10px 0', cursor: 'pointer' }}
+                                    >
+                                        <div style={{ flex: 2 }}>
+                                            <div style={{ fontWeight: 600 }}>{tx.description}</div>
+                                            <div style={{ fontSize: 13, color: '#8E8E93' }}>{tx.displayDate ? tx.displayDate.toLocaleDateString('it-IT') : ''} {tx.time ? `- ${tx.time}` : ''} {tx.account ? `- ${tx.account}` : ''}</div>
+                                        </div>
+                                        <div style={{ flex: 1, textAlign: 'right', fontWeight: 600, color: tx.type === 'entrata' ? '#34C759' : '#FF3B30' }}>
+                                            {formatAmount(tx.amount, tx.type)} €
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <div className="buttonContainer">
+                            <button className="button cancelButton" onClick={() => setSelectedCategory(null)}>Chiudi</button>
                         </div>
                     </div>
                 </div>

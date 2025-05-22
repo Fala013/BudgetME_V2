@@ -183,26 +183,39 @@ body {
     background-color: #FF2D55;
 }
 
+.transactionItem, .accountItem, .categoryItem, .categoryTxItem {
+    transition: background-color 0.2s;
+}
+
+.transactionItem:hover, .accountItem:hover, .categoryItem:hover, .categoryTxItem:hover {
+    background-color: #F2F2F7;
+}
+
+.transactionItem:active, .accountItem:active, .categoryItem:active, .categoryTxItem:active {
+    background-color: #E5E5EA;
+}
+
 .transactionItem {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px 0;
     border-bottom: 1px solid #E5E5EA;
-    transition: all 0.2s ease;
-}
-
-.transactionItem:hover {
-    background-color: #F2F2F7;
-    transform: translateX(4px);
-}
-
-.transactionItem:active {
-    background-color: #E5E5EA;
+    transition: background-color 0.2s;
 }
 
 .transactionInfo {
     flex: 1;
+    min-width: 0;
+}
+
+.transactionActions {
+    flex: 0 0 auto;
+    min-width: 100px;
+    text-align: right;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
 }
 
 .transactionDescription {
@@ -583,10 +596,10 @@ body {
         color: #f2f2f7;
         border-color: #333;
     }
-    .transactionItem:hover {
+    .transactionItem:hover, .accountItem:hover, .categoryItem:hover, .categoryTxItem:hover {
         background-color: #2C2C2E;
     }
-    .transactionItem:active {
+    .transactionItem:active, .accountItem:active, .categoryItem:active, .categoryTxItem:active {
         background-color: #3A3A3C;
     }
     .summaryRow, .balanceRow {
@@ -664,6 +677,12 @@ body {
     .balanceRow {
         border-top: 1px solid #333 !important;
     }
+    .transactionItem {
+        border-bottom: 1px solid #333;
+    }
+    .categoryTxItem {
+        border-bottom: 1px solid #333 !important;
+    }
 }
 
 /* Remove number input arrows */
@@ -680,22 +699,6 @@ body {
 /* Smooth Transitions */
 .transactionItem {
     transition: all 0.2s ease;
-}
-
-.transactionItem:hover {
-    transform: translateX(4px);
-}
-
-.button {
-    transition: all 0.2s ease;
-}
-
-.button:hover {
-    transform: translateY(-1px);
-}
-
-.button:active {
-    transform: translateY(0);
 }
 
 /* Loading Animation */
@@ -795,5 +798,59 @@ body {
     .modal {
         margin: 16px;
         max-height: calc(100vh - 32px);
+    }
+}
+
+.accountItem {
+    transition: background-color 0.2s;
+}
+
+.accountItem:hover {
+    background-color: #F2F2F7;
+}
+
+.accountItem:active {
+    background-color: #E5E5EA;
+}
+
+@media (prefers-color-scheme: dark) {
+    .accountItem:hover {
+        background-color: #2C2C2E;
+    }
+    .accountItem:active {
+        background-color: #3A3A3C;
+    }
+}
+
+.categoryItem {
+    transition: background-color 0.2s;
+}
+
+.categoryItem:hover {
+    background-color: #F2F2F7;
+}
+
+.categoryItem:active {
+    background-color: #E5E5EA;
+}
+
+.categoryTxItem {
+    transition: background-color 0.2s;
+}
+
+.categoryTxItem:hover {
+    background-color: #F2F2F7;
+}
+
+.categoryTxItem:active {
+    background-color: #E5E5EA;
+}
+
+@media (prefers-color-scheme: dark) {
+    .categoryItem:hover, .categoryTxItem:hover {
+        background-color: #2C2C2E;
+    }
+    .categoryItem:active, .categoryTxItem:active {
+        background-color: #3A3A3C;
     }
 } 
